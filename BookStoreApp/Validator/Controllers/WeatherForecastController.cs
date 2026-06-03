@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 
-namespace BackendSF.Controllers
+namespace Validator.Controllers
 {
     [ApiController]
     [Route("[controller]")]

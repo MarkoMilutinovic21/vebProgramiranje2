@@ -4,8 +4,8 @@ internal static class Program
 {
     private static void Main()
     {
-        ServiceRuntime.RegisterServiceAsync("BackendSFType",
-            context => new BackendSF.BackendSF(context)).GetAwaiter().GetResult();
+        ServiceRuntime.RegisterServiceAsync("ValidatorType",
+            context => new Validator.Validator(context)).GetAwaiter().GetResult();
 
         Thread.Sleep(Timeout.Infinite);
     }
