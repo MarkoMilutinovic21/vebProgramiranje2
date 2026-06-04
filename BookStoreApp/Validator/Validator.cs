@@ -3,6 +3,7 @@ using Microsoft.ServiceFabric.Services.Remoting.Client;
 using Microsoft.ServiceFabric.Services.Remoting.Runtime;
 using Microsoft.ServiceFabric.Services.Runtime;
 using Shared.DTOs;
+using Shared.Events;
 using Shared.Interfaces;
 using System.Fabric;
 
@@ -42,6 +43,23 @@ namespace Validator
 
             await bankService.DeductBalanceAsync(request.UserId, totalPrice);
             await libraryService.ReduceStockAsync(request.BookId, request.Quantity);
+
+            var eventDispatcher = ServiceProxy.Create<IEventDispatcherService>(
+                new Uri("fabric:/BookStoreApp/EventDispatcherService")
+            );
+
+            var purchaseEvent = new PurchaseEvent
+            {
+                UserId = request.UserId,
+                BookId = request.BookId,
+                BookTitle = book.Title,
+                Quantity = request.Quantity,
+                TotalPrice = totalPrice,
+                Email = request.Email,
+                Timestamp = DateTime.UtcNow
+            };
+
+            _ = eventDispatcher.PublishAsync(purchaseEvent);
 
             return new ValidationResultDto { IsValid = true, Message = "Purchase successful." };
         }
