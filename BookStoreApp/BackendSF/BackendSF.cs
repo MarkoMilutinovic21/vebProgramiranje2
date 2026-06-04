@@ -23,9 +23,19 @@ namespace BackendSF
                             {
                                 services.AddSingleton<StatelessServiceContext>(serviceContext);
                                 services.AddControllers();
+                                services.AddCors(options =>
+                                {
+                                    options.AddPolicy("AllowReactApp", policy =>
+                                    {
+                                        policy.WithOrigins("http://localhost:5173")
+                                              .AllowAnyHeader()
+                                              .AllowAnyMethod();
+                                    });
+                                });
                             })
                             .Configure(app =>
                             {
+                                app.UseCors("AllowReactApp");
                                 app.UseRouting();
                                 app.UseEndpoints(endpoints => endpoints.MapControllers());
                             })
