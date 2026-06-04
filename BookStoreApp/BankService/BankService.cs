@@ -16,7 +16,6 @@ namespace BankService
         public async Task<UserAccountDto> GetUserAccountAsync(string userId)
         {
             var accounts = await StateManager.GetOrAddAsync<IReliableDictionary<string, UserAccountDto>>("accounts");
-
             using var tx = StateManager.CreateTransaction();
             var result = await accounts.TryGetValueAsync(tx, userId);
             return result.HasValue ? result.Value : null;
@@ -31,7 +30,6 @@ namespace BankService
         public async Task<bool> DeductBalanceAsync(string userId, decimal amount)
         {
             var accounts = await StateManager.GetOrAddAsync<IReliableDictionary<string, UserAccountDto>>("accounts");
-
             using var tx = StateManager.CreateTransaction();
             var result = await accounts.TryGetValueAsync(tx, userId);
 
@@ -55,8 +53,12 @@ namespace BankService
             var accounts = await StateManager.GetOrAddAsync<IReliableDictionary<string, UserAccountDto>>("accounts");
 
             using var tx = StateManager.CreateTransaction();
-            await accounts.TryAddAsync(tx, "user1", new UserAccountDto { UserId = "user1", Name = "John Doe", Email = "john@example.com", Balance = 500.00m });
-            await accounts.TryAddAsync(tx, "user2", new UserAccountDto { UserId = "user2", Name = "Jane Doe", Email = "jane@example.com", Balance = 200.00m });
+            var user1Exists = await accounts.ContainsKeyAsync(tx, "user1");
+            if (!user1Exists)
+            {
+                await accounts.AddAsync(tx, "user1", new UserAccountDto { UserId = "user1", Name = "John Doe", Email = "john@example.com", Balance = 500.00m });
+                await accounts.AddAsync(tx, "user2", new UserAccountDto { UserId = "user2", Name = "Jane Doe", Email = "jane@example.com", Balance = 200.00m });
+            }
             await tx.CommitAsync();
         }
     }

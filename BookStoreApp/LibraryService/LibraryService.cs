@@ -16,7 +16,6 @@ namespace LibraryService
         public async Task<BookDto> GetBookAsync(string bookId)
         {
             var books = await StateManager.GetOrAddAsync<IReliableDictionary<string, BookDto>>("books");
-
             using var tx = StateManager.CreateTransaction();
             var result = await books.TryGetValueAsync(tx, bookId);
             return result.HasValue ? result.Value : null;
@@ -31,7 +30,6 @@ namespace LibraryService
         public async Task<bool> ReduceStockAsync(string bookId, int quantity)
         {
             var books = await StateManager.GetOrAddAsync<IReliableDictionary<string, BookDto>>("books");
-
             using var tx = StateManager.CreateTransaction();
             var result = await books.TryGetValueAsync(tx, bookId);
 
@@ -55,8 +53,12 @@ namespace LibraryService
             var books = await StateManager.GetOrAddAsync<IReliableDictionary<string, BookDto>>("books");
 
             using var tx = StateManager.CreateTransaction();
-            await books.TryAddAsync(tx, "book1", new BookDto { BookId = "book1", Title = "Clean Code", Quantity = 10, Price = 25.99m });
-            await books.TryAddAsync(tx, "book2", new BookDto { BookId = "book2", Title = "Design Patterns", Quantity = 5, Price = 35.99m });
+            var book1Exists = await books.ContainsKeyAsync(tx, "book1");
+            if (!book1Exists)
+            {
+                await books.AddAsync(tx, "book1", new BookDto { BookId = "book1", Title = "Clean Code", Quantity = 10, Price = 25.99m });
+                await books.AddAsync(tx, "book2", new BookDto { BookId = "book2", Title = "Design Patterns", Quantity = 5, Price = 35.99m });
+            }
             await tx.CommitAsync();
         }
     }
